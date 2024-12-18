@@ -19,12 +19,16 @@ import android.bluetooth.le.BluetoothLeAdvertiser
 import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
+import com.colors.testble.data.local.database.BLEDatabase
+import com.colors.testble.data.local.entity.MessageReceiveEntity
+import com.colors.testble.data.local.entity.MessageSendEntity
 import com.colors.testble.data.utils.CONFIRM_UUID
 import com.colors.testble.data.utils.MESSAGE_UUID
 import com.colors.testble.data.utils.SERVICE_UUID
 
 object BLEServer {
     private var appContext: Application? = null
+    private var bleDatabase: BLEDatabase? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothManager: BluetoothManager? = null
 
@@ -44,8 +48,14 @@ object BLEServer {
     private var gatt: BluetoothGatt? = null
     private var messageCharacteristic: BluetoothGattCharacteristic? = null
 
-    fun startServer(app: Application, bleAdapter: BluetoothAdapter, bleManager: BluetoothManager) {
+    fun startServer(
+        app: Application,
+        bleAdapter: BluetoothAdapter,
+        bleManager: BluetoothManager,
+        database: BLEDatabase
+    ) {
         appContext = app
+        bleDatabase = database
         bluetoothAdapter = bleAdapter
         bluetoothManager = bleManager
         setupGattServer()
@@ -87,6 +97,7 @@ object BLEServer {
                     val success = gatt?.writeCharacteristic(messageCharacteristic)
                     Log.d("devLog", "writeCharacteristic: $success")
                 }
+                bleDatabase?.messageSendDao?.insert(MessageSendEntity(message = message))
             } ?: run {
                 Log.d("devLog", "sendMessage: no gatt connection to send a message with")
             }
@@ -236,6 +247,7 @@ object BLEServer {
                 gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
                 val message = value?.toString(Charsets.UTF_8)
                 Log.d("devLog", "onCharacteristicWriteRequest: Have message: $message")
+                bleDatabase?.messageReceiveDao?.insert(MessageReceiveEntity(message = "Have message: $message"))
             }
         }
     }

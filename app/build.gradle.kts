@@ -64,4 +64,19 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     /**Hilt Navigation Compose**/
     implementation(libs.hilt.navigation.compose)
+    /**
+     * Work manager
+     * */
+    implementation(libs.work.runtime.ktx)
+    /**
+     * Hilt work
+     * */
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.compiler)
+    /**
+     * Room database
+     * */
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    implementation(libs.room.paging)
 }

@@ -5,15 +5,17 @@ import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import com.colors.testble.data.bluetooth.server.BLEServer
+import com.colors.testble.data.local.database.BLEDatabase
 
 class BleConnectionManagerImpl(
     private val application: Application,
     private val bluetoothAdapter: BluetoothAdapter,
     private val bluetoothManager: BluetoothManager,
+    private val bleDatabase: BLEDatabase
 ) : BleConnectionManager {
 
     override fun startServer() {
-        BLEServer.startServer(application, bluetoothAdapter, bluetoothManager)
+        BLEServer.startServer(application, bluetoothAdapter, bluetoothManager, bleDatabase)
     }
 
     override fun stopServer() {

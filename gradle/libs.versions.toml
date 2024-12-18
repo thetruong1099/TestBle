@@ -20,6 +20,12 @@ hiltAndroidCompiler = "2.52"
 googleDaggerHilt = "2.52"
 #---Hilt Navigation compose---#
 hiltNavigationCompose = "1.2.0"
+#---Work Manager---#
+workVersion = "2.10.0"
+#---Hilt Work Manager---#
+hilWorkVersion = "1.2.0"
+#---Room---#
+room = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +51,16 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 #---Hilt Navigation compose---#
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+#---Work Manager---#
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workVersion" }
+#---Hilt Work Manager---#
+hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hilWorkVersion" }
+hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hilWorkVersion" }
+#---Room---#
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

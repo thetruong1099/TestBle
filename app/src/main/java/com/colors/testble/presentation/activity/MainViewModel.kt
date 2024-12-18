@@ -1,8 +1,13 @@
 package com.colors.testble.presentation.activity
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewModelScope
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.colors.testble.data.worker.SendMessageWorker
 import com.colors.testble.domain.usecase.BleUseCase
 import com.colors.testble.domain.usecase.ConnectToDeviceUseCase
 import com.colors.testble.domain.usecase.DisconnectUseCase
@@ -12,11 +17,14 @@ import com.colors.testble.domain.usecase.StartGattServerUseCase
 import com.colors.testble.domain.usecase.WriteCharacteristicUseCase
 import com.colors.testble.presentation.base.BaseViewModel
 import com.colors.testble.presentation.base.IViewEvent
+import com.colors.testble.presentation.utils.getCurrentFormattedTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,6 +52,7 @@ class MainViewModel
 
     override fun createInitialState(): MainViewState = MainViewState()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onTriggerEvent(event: MainViewEvent) {
         viewModelScope.launch {
             when (event) {
@@ -64,10 +73,25 @@ class MainViewModel
                 }
 
                 MainViewEvent.SendMessage -> {
-                    call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params("Hello")))
+                    send()
+                    //sendMessage()
+                    //call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params("Hello")))
                 }
             }
         }
+    }
+
+    private suspend fun sendMessage() {
+        val workRequest = PeriodicWorkRequestBuilder<SendMessageWorker>(5, TimeUnit.MINUTES).build()
+
+        WorkManager.getInstance(appContext).enqueue(workRequest)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun send() {
+        call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params("Hello ${getCurrentFormattedTime()}")))
+        delay(10000)
+        send()
     }
 }
 

@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-<!--    <uses-feature
+    <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
-    <uses-feature android:name="android.hardware.location.gps" />-->
+    <uses-feature android:name="android.hardware.location.gps" />
 
     <!--Before Android 12 (but still needed location, even if not requested)-->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
