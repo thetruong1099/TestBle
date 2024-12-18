@@ -128,6 +128,42 @@ class MainActivity : ComponentActivity() {
                             Text(text = "Scan BLE Devices")
                         }
 
+                        Button(
+                            onClick = {
+                                viewModel.onTriggerEvent(MainViewEvent.ConnectToDevice1)
+                            },
+                            enabled = permissionGrand
+                        ) {
+                            Text(text = "Connect BLE Device1")
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.onTriggerEvent(MainViewEvent.ConnectToDevice2)
+                            },
+                            enabled = permissionGrand
+                        ) {
+                            Text(text = "Connect BLE Device2")
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.onTriggerEvent(MainViewEvent.Disconnect)
+                            },
+                            enabled = permissionGrand
+                        ) {
+                            Text(text = "Disconnect BLE Devices")
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.onTriggerEvent(MainViewEvent.SendMessage)
+                            },
+                            enabled = permissionGrand
+                        ) {
+                            Text(text = "Send BLE Devices")
+                        }
+
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(16.dp)

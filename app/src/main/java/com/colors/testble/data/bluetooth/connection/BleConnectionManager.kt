@@ -5,4 +5,5 @@ interface BleConnectionManager {
     fun stopServer()
     fun connect(address: String)
     fun disconnect()
+    fun writeCharacteristic(message: String)
 }
