@@ -1,12 +1,11 @@
 package com.colors.testble.presentation.activity
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewModelScope
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.colors.testble.data.local.entity.LogEntity
 import com.colors.testble.data.worker.SendMessageWorker
 import com.colors.testble.domain.usecase.BleUseCase
 import com.colors.testble.domain.usecase.ConnectToDeviceUseCase
@@ -20,8 +19,11 @@ import com.colors.testble.presentation.base.IViewEvent
 import com.colors.testble.presentation.utils.getCurrentFormattedTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.realm.kotlin.Realm
+import io.realm.kotlin.ext.query
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -31,7 +33,8 @@ import javax.inject.Inject
 class MainViewModel
 @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val bleUseCase: BleUseCase
+    private val bleUseCase: BleUseCase,
+    private val realmDataBase: Realm,
 ) : BaseViewModel<MainViewState, MainViewEvent>() {
 
     init {
@@ -45,6 +48,8 @@ class MainViewModel
                         setState { copy(scannedDevices = it) }
                     }
                 }
+
+            getLog()
         }
     }
 
@@ -52,7 +57,6 @@ class MainViewModel
 
     override fun createInitialState(): MainViewState = MainViewState()
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onTriggerEvent(event: MainViewEvent) {
         viewModelScope.launch {
             when (event) {
@@ -87,11 +91,18 @@ class MainViewModel
         WorkManager.getInstance(appContext).enqueue(workRequest)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun send() {
         call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params("Hello ${getCurrentFormattedTime()}")))
-        delay(10000)
+        delay(60000)
         send()
+    }
+
+    private suspend fun getLog() {
+        realmDataBase.query<LogEntity>().asFlow().map { it.list }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), currentState.logList)
+            .collect {
+                setState { copy(logList = it) }
+            }
     }
 }
 

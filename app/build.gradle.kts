@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.dagger.hilt)
+    alias(libs.plugins.realm.kotlin)
 }
 
 android {
@@ -74,9 +75,8 @@ dependencies {
     implementation(libs.hilt.work)
     ksp(libs.hilt.compiler)
     /**
-     * Room database
+     * Realm database
      * */
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-    implementation(libs.room.paging)
+    implementation(libs.realm.library.base)
+    implementation(libs.realm.library.sync)
 }

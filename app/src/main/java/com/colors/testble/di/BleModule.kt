@@ -9,7 +9,6 @@ import com.colors.testble.data.bluetooth.connection.BleConnectionManager
 import com.colors.testble.data.bluetooth.connection.BleConnectionManagerImpl
 import com.colors.testble.data.bluetooth.scanner.BleScanner
 import com.colors.testble.data.bluetooth.scanner.BleScannerImpl
-import com.colors.testble.data.local.database.BLEDatabase
 import com.colors.testble.data.repository.BleRepositoryImpl
 import com.colors.testble.domain.repository.BleRepository
 import com.colors.testble.domain.usecase.BleUseCase
@@ -25,6 +24,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.realm.kotlin.Realm
 import javax.inject.Singleton
 
 @Module
@@ -55,7 +55,7 @@ data object BleModule {
         @ApplicationContext appContext: Context,
         bluetoothAdapter: BluetoothAdapter,
         bluetoothManager: BluetoothManager,
-        bleDatabase: BLEDatabase
+        bleDatabase: Realm
     ): BleConnectionManager = BleConnectionManagerImpl(
         application = appContext as Application,
         bluetoothAdapter = bluetoothAdapter,

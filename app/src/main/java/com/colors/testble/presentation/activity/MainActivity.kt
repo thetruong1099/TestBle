@@ -169,9 +169,9 @@ class MainActivity : ComponentActivity() {
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(
-                                count = viewState.scannedDevices.count(),
-                                key = { viewState.scannedDevices[it].address }) { index ->
-                                val device = viewState.scannedDevices[index]
+                                count = viewState.logList.count(),
+                                key = { viewState.logList[it].id }) { index ->
+                                val log = viewState.logList[index]
                                 Card(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -179,8 +179,8 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        Text(text = device.name ?: "Unknown")
-                                        Text(text = device.address)
+                                        Text(text = log.message)
+                                        Text(text = log.time)
                                     }
                                 }
 

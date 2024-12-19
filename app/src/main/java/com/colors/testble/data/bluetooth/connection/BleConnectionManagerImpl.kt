@@ -5,13 +5,13 @@ import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import com.colors.testble.data.bluetooth.server.BLEServer
-import com.colors.testble.data.local.database.BLEDatabase
+import io.realm.kotlin.Realm
 
 class BleConnectionManagerImpl(
     private val application: Application,
     private val bluetoothAdapter: BluetoothAdapter,
     private val bluetoothManager: BluetoothManager,
-    private val bleDatabase: BLEDatabase
+    private val bleDatabase: Realm
 ) : BleConnectionManager {
 
     override fun startServer() {

@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
@@ -19,16 +20,16 @@ import android.bluetooth.le.BluetoothLeAdvertiser
 import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
-import com.colors.testble.data.local.database.BLEDatabase
-import com.colors.testble.data.local.entity.MessageReceiveEntity
-import com.colors.testble.data.local.entity.MessageSendEntity
+import com.colors.testble.data.local.datasource.RealmDataSource
+import com.colors.testble.data.local.entity.LogEntity
 import com.colors.testble.data.utils.CONFIRM_UUID
 import com.colors.testble.data.utils.MESSAGE_UUID
 import com.colors.testble.data.utils.SERVICE_UUID
+import io.realm.kotlin.Realm
 
 object BLEServer {
     private var appContext: Application? = null
-    private var bleDatabase: BLEDatabase? = null
+    private var bleDatabase: Realm? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothManager: BluetoothManager? = null
 
@@ -52,7 +53,7 @@ object BLEServer {
         app: Application,
         bleAdapter: BluetoothAdapter,
         bleManager: BluetoothManager,
-        database: BLEDatabase
+        database: Realm
     ) {
         appContext = app
         bleDatabase = database
@@ -87,22 +88,27 @@ object BLEServer {
             val messageBytes = message.toByteArray(Charsets.UTF_8)
             gatt?.let {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    gatt!!.writeCharacteristic(
+                    val status = gatt!!.writeCharacteristic(
                         characteristic,
                         messageBytes,
                         BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
                     )
+                    insertLog("writeCharacteristic: ${status == BluetoothStatusCodes.SUCCESS}")
+                    if (status == BluetoothStatusCodes.SUCCESS) {
+                        insertLog("writeCharacteristic: success")
+                    } else {
+                       insertLog("writeCharacteristic: failed")
+                    }
                 } else {
                     characteristic.value = messageBytes
                     val success = gatt?.writeCharacteristic(messageCharacteristic)
-                    Log.d("devLog", "writeCharacteristic: $success")
+                    insertLog("writeCharacteristic: $success")
                 }
-                bleDatabase?.messageSendDao?.insert(MessageSendEntity(message = message))
             } ?: run {
-                Log.d("devLog", "sendMessage: no gatt connection to send a message with")
+                insertLog("sendMessage: no gatt connection to send a message with")
             }
         } ?: run {
-            Log.d("devLog", "sendMessage: no message characteristic to send a message with")
+           insertLog("sendMessage: no message characteristic to send a message with")
         }
     }
 
@@ -152,7 +158,7 @@ object BLEServer {
     @SuppressLint("MissingPermission")
     private fun startAdvertisement() {
         advertiser = bluetoothAdapter!!.bluetoothLeAdvertiser
-        Log.d("devLog", "startAdvertisement: with advertiser $advertiser")
+        insertLog("startAdvertisement: with advertiser $advertiser")
 
         if (advertiseCallback == null) {
             advertiseCallback = DeviceAdvertiseCallback()
@@ -166,7 +172,7 @@ object BLEServer {
      */
     @SuppressLint("MissingPermission")
     private fun stopAdvertising() {
-        Log.d("devLog", "Stopping Advertising with advertiser $advertiser")
+        insertLog("Stopping Advertising with advertiser $advertiser")
         advertiser?.stopAdvertising(advertiseCallback)
         advertiseCallback = null
     }
@@ -211,15 +217,12 @@ object BLEServer {
             super.onConnectionStateChange(device, status, newState)
             val isSuccess = status == BluetoothGatt.GATT_SUCCESS
             val isConnected = newState == BluetoothProfile.STATE_CONNECTED
-            Log.d(
-                "devLog",
-                "onConnectionStateChange: Server success: $isSuccess connected: $isConnected device $device"
-            )
+            insertLog("onConnectionStateChange: Server success: $isSuccess connected: $isConnected device $device")
             if (isSuccess && isConnected) {
                 //connect(device.address)
-                Log.d("devLog", "onConnectionStateChange: have device connected $device")
+                insertLog("onConnectionStateChange: have device connected $device")
             } else {
-                Log.d("devLog", "onConnectionStateChange: have device disconnected $device")
+                insertLog("onConnectionStateChange: have device disconnected $device")
             }
         }
 
@@ -242,12 +245,11 @@ object BLEServer {
                 offset,
                 value
             )
-            Log.d("devLog", "onCharacteristicWriteRequest: ${characteristic.uuid}")
+            insertLog("onCharacteristicWriteRequest: ${characteristic.uuid}")
             if (characteristic.uuid == MESSAGE_UUID) {
                 gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
                 val message = value?.toString(Charsets.UTF_8)
-                Log.d("devLog", "onCharacteristicWriteRequest: Have message: $message")
-                bleDatabase?.messageReceiveDao?.insert(MessageReceiveEntity(message = "Have message: $message"))
+                insertLog("onCharacteristicWriteRequest: Have message: $message")
             }
         }
     }
@@ -258,7 +260,7 @@ object BLEServer {
             super.onConnectionStateChange(gatt, status, newState)
             val isSuccess = status == BluetoothGatt.GATT_SUCCESS
             val isConnected = newState == BluetoothProfile.STATE_CONNECTED
-            Log.d("devLog", "onConnectionStateChange: Client $gatt  success: $isSuccess connected: $isConnected")
+            insertLog("onConnectionStateChange: Client $gatt  success: $isSuccess connected: $isConnected")
             // try to send a message to the other device as a test
             if (isSuccess && isConnected) {
                 // discover services
@@ -269,13 +271,13 @@ object BLEServer {
         override fun onServicesDiscovered(discoveredGatt: BluetoothGatt, status: Int) {
             super.onServicesDiscovered(discoveredGatt, status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.d("devLog", "onServicesDiscovered: Have gatt1 $discoveredGatt")
+                insertLog("onServicesDiscovered: Have gatt1 $discoveredGatt")
                 gatt = discoveredGatt
-                Log.d("devLog", "onServicesDiscovered: Have gatt2")
+                insertLog("onServicesDiscovered: Have gatt2")
                 val service = discoveredGatt.getService(SERVICE_UUID)
-                Log.d("devLog", "onServicesDiscovered: Have gatt3 ${service}")
+                insertLog("onServicesDiscovered: Have gatt3 ${service}")
                 messageCharacteristic = service.getCharacteristic(MESSAGE_UUID)
-                Log.d("devLog", "onServicesDiscovered: Have gatt4 $messageCharacteristic")
+                insertLog("onServicesDiscovered: Have gatt4 $messageCharacteristic")
             }
         }
     }
@@ -288,14 +290,26 @@ object BLEServer {
         override fun onStartFailure(errorCode: Int) {
             super.onStartFailure(errorCode)
             // Send error state to display
-            val errorMessage = "Advertise failed with error: $errorCode"
-            Log.d("devLog", "Advertising failed $errorMessage")
+            insertLog("Advertise failed with error: $errorCode")
             //_viewState.value = DeviceScanViewState.Error(errorMessage)
         }
 
         override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
             super.onStartSuccess(settingsInEffect)
-            Log.d("devLog", "Advertising successfully started")
+            insertLog("Advertising successfully started")
+        }
+    }
+
+    private fun insertLog(messageLog: String) {
+        bleDatabase?.let {
+            RealmDataSource.insertLog(bleDatabase!!,
+                LogEntity().apply {
+                    message = messageLog
+                }
+            )
+            Log.d("devLog", messageLog)
+        } ?: run {
+            Log.d("devLog", "onServicesDiscovered: $bleDatabase ")
         }
     }
 }
