@@ -11,7 +11,7 @@ object RealmDataSource {
     fun insertLog(realm: Realm, log: LogEntity) {
         CoroutineScope(Dispatchers.IO).launch {
             realm.write { copyToRealm(log) }
-            Log.d("devLog", "log: $log")
+            Log.d("devLog", "log: ${log.message}")
         }
     }
 }

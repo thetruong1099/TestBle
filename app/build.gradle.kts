@@ -4,7 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.dagger.hilt)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.realm.kotlin)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -63,6 +65,8 @@ dependencies {
     /** Dagger Hilt **/
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    /**Navigation Compose**/
+    implementation(libs.navigation.compose)
     /**Hilt Navigation Compose**/
     implementation(libs.hilt.navigation.compose)
     /**
@@ -79,4 +83,7 @@ dependencies {
      * */
     implementation(libs.realm.library.base)
     implementation(libs.realm.library.sync)
+
+    /**Kotlinx serialization json**/
+    implementation(libs.kotlinx.serialization.json)
 }

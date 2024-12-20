@@ -307,7 +307,6 @@ object BLEServer {
                     message = messageLog
                 }
             )
-            Log.d("devLog", messageLog)
         } ?: run {
             Log.d("devLog", "onServicesDiscovered: $bleDatabase ")
         }
