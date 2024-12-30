@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.colors.testble.presentation.screen.logscreen.logScreen
 import com.colors.testble.presentation.screen.mainscreen.mainScreen
+import com.colors.testble.presentation.screen.scanscreen.scanScreen
 import com.colors.testble.presentation.utils.Graph
 import com.colors.testble.presentation.utils.Screen
 
@@ -18,9 +19,15 @@ fun RootNavGraph(navController: NavHostController) {
         mainScreen(
             onNavigateToLogScreen = {
                 navController.navigate(Screen.LogScreen)
+            },
+
+            onNavigateToScanScreen = {
+                navController.navigate(Screen.ScanScreen)
             }
         )
 
         logScreen()
+
+        scanScreen()
     }
 }

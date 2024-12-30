@@ -15,7 +15,5 @@ class ScanBleUseCase(
     override suspend fun invoke(param: Params): Flow<Unit> =
         flow {
             emit(bleRepository.startScanning())
-//            delay(10000)
-//            emit(bleRepository.stopScanning())
         }
 }

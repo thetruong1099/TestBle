@@ -2,6 +2,7 @@ package com.colors.testble.presentation.screen.mainscreen
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,10 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.colors.testble.presentation.service.BLEService
 
 @Composable
 fun MainScreen(
     onEvent: (MainViewEvent) -> Unit,
+    onNavigateToScanScreen: () -> Unit,
     onNavigateToLogScreen: () -> Unit,
 ) {
     val permissionsForAddStage = when {
@@ -109,7 +112,27 @@ fun MainScreen(
         ) {
             Button(
                 onClick = {
-                    onEvent.invoke(MainViewEvent.ScanBle)
+                    val serviceIntent = Intent(context, BLEService::class.java)
+                    ContextCompat.startForegroundService(context, serviceIntent)
+                },
+                enabled = permissionGrand
+            ) {
+                Text(text = "Start Ble Service")
+            }
+
+            Button(
+                onClick = {
+                    val serviceIntent = Intent(context, BLEService::class.java)
+                    context.stopService(serviceIntent)
+                },
+                enabled = permissionGrand
+            ) {
+                Text(text = "Stop Ble Service")
+            }
+
+            Button(
+                onClick = {
+                    onNavigateToScanScreen.invoke()
                 },
                 enabled = permissionGrand
             ) {
@@ -145,11 +168,11 @@ fun MainScreen(
 
             Button(
                 onClick = {
-                    onEvent.invoke(MainViewEvent.SendMessage)
+                    onEvent.invoke(MainViewEvent.GetBattery)
                 },
                 enabled = permissionGrand
             ) {
-                Text(text = "Send BLE Devices")
+                Text(text = "Get Battery Devices")
             }
 
             Button(

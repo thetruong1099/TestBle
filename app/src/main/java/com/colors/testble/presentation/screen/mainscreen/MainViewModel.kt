@@ -30,14 +30,6 @@ class MainViewModel
     init {
 //        viewModelScope.launch {
 //            call(bleUseCase.startGattServerUseCase.invoke(StartGattServerUseCase.Params))
-//            bleUseCase.getBleDeviceUseCase.invoke(GetBleDeviceUseCase.Params)
-//                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), currentState.scannedDevices)
-//                .collect {
-//                    Log.d("devLog", "scanBle: $it")
-//                    if (it.isNotEmpty()) {
-//                        setState { copy(scannedDevices = it) }
-//                    }
-//                }
 //        }
     }
 
@@ -69,8 +61,17 @@ class MainViewModel
                     //sendMessage()
                     //call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params("Hello")))
                 }
+
+                MainViewEvent.GetBattery -> {
+                    getBattery()
+                }
             }
         }
+    }
+
+    private suspend fun getBattery() {
+        val message = "5BB506000016"
+        call(bleUseCase.writeCharacteristicUseCase.invoke(WriteCharacteristicUseCase.Params(message)))
     }
 
     private suspend fun sendMessage() {
@@ -92,4 +93,5 @@ sealed class MainViewEvent : IViewEvent {
     data object ConnectToDevice2 : MainViewEvent()
     data object Disconnect : MainViewEvent()
     data object SendMessage : MainViewEvent()
+    data object GetBattery : MainViewEvent()
 }

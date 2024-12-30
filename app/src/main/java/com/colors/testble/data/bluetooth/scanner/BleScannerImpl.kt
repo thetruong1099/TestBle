@@ -8,6 +8,7 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.os.ParcelUuid
+import android.util.Log
 import com.colors.testble.data.utils.SERVICE_UUID
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,7 @@ class BleScannerImpl(
         result: ScanResult?,
     ) {
         super.onScanResult(callbackType, result)
+        Log.d("devLog","onScanResult: $result")
         result?.let {
             deviceList[it.device.address] = it.device
             trySend(deviceList.values.toList())

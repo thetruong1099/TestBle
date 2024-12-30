@@ -13,4 +13,6 @@ sealed class Screen {
     data object MainScreen : Screen()
     @Serializable
     data object LogScreen : Screen()
+    @Serializable
+    data object ScanScreen : Screen()
 }

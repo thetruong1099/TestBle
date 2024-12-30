@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
 import android.bluetooth.BluetoothGattService
@@ -22,10 +23,11 @@ import android.os.ParcelUuid
 import android.util.Log
 import com.colors.testble.data.local.datasource.RealmDataSource
 import com.colors.testble.data.local.entity.LogEntity
-import com.colors.testble.data.utils.CONFIRM_UUID
-import com.colors.testble.data.utils.MESSAGE_UUID
+import com.colors.testble.data.utils.RESPONSE_MESSAGE_UUID
+import com.colors.testble.data.utils.SEND_MESSAGE_UUID
 import com.colors.testble.data.utils.SERVICE_UUID
 import io.realm.kotlin.Realm
+import java.util.UUID
 
 object BLEServer {
     private var appContext: Application? = null
@@ -97,7 +99,7 @@ object BLEServer {
                     if (status == BluetoothStatusCodes.SUCCESS) {
                         insertLog("writeCharacteristic: success")
                     } else {
-                       insertLog("writeCharacteristic: failed")
+                        insertLog("writeCharacteristic: failed")
                     }
                 } else {
                     characteristic.value = messageBytes
@@ -108,7 +110,7 @@ object BLEServer {
                 insertLog("sendMessage: no gatt connection to send a message with")
             }
         } ?: run {
-           insertLog("sendMessage: no message characteristic to send a message with")
+            insertLog("sendMessage: no message characteristic to send a message with")
         }
     }
 
@@ -137,13 +139,13 @@ object BLEServer {
         val service = BluetoothGattService(SERVICE_UUID, BluetoothGattService.SERVICE_TYPE_PRIMARY)
         // need to ensure that the property is writable and has the write permission
         val messageCharacteristic = BluetoothGattCharacteristic(
-            MESSAGE_UUID,
+            SEND_MESSAGE_UUID,
             BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_WRITE
         )
         service.addCharacteristic(messageCharacteristic)
         val confirmCharacteristic = BluetoothGattCharacteristic(
-            CONFIRM_UUID,
+            RESPONSE_MESSAGE_UUID,
             BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_WRITE
         )
@@ -246,11 +248,21 @@ object BLEServer {
                 value
             )
             insertLog("onCharacteristicWriteRequest: ${characteristic.uuid}")
-            if (characteristic.uuid == MESSAGE_UUID) {
+            if (characteristic.uuid == RESPONSE_MESSAGE_UUID) {
                 gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
                 val message = value?.toString(Charsets.UTF_8)
                 insertLog("onCharacteristicWriteRequest: Have message: $message")
             }
+        }
+
+        override fun onCharacteristicReadRequest(
+            device: BluetoothDevice?,
+            requestId: Int,
+            offset: Int,
+            characteristic: BluetoothGattCharacteristic?
+        ) {
+            super.onCharacteristicReadRequest(device, requestId, offset, characteristic)
+            Log.d("devLog", "onCharacteristicReadRequest: ${characteristic?.uuid}")
         }
     }
 
@@ -268,17 +280,80 @@ object BLEServer {
             }
         }
 
+        @SuppressLint("MissingPermission")
         override fun onServicesDiscovered(discoveredGatt: BluetoothGatt, status: Int) {
             super.onServicesDiscovered(discoveredGatt, status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 insertLog("onServicesDiscovered: Have gatt1 $discoveredGatt")
                 gatt = discoveredGatt
-                insertLog("onServicesDiscovered: Have gatt2")
                 val service = discoveredGatt.getService(SERVICE_UUID)
-                insertLog("onServicesDiscovered: Have gatt3 ${service}")
-                messageCharacteristic = service.getCharacteristic(MESSAGE_UUID)
-                insertLog("onServicesDiscovered: Have gatt4 $messageCharacteristic")
+                messageCharacteristic = service.getCharacteristic(SEND_MESSAGE_UUID)
+                discoveredGatt.services.forEach { service ->
+                    insertLog("onServicesDiscovered: Have gatt1 service uuid ${service.uuid}")
+                    service.getCharacteristic(RESPONSE_MESSAGE_UUID)?.let { characteristic ->
+                        insertLog("onServicesDiscovered: Have gatt1 character uuid ${characteristic.uuid}")
+                    }
+                    service.characteristics.forEach { characteristic ->
+                        gatt?.setCharacteristicNotification(characteristic, true)
+                        val descriptor =
+                            characteristic?.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                        descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt?.writeDescriptor(descriptor)
+                        insertLog("onServicesDiscovered: Have gatt1 character uuid ${characteristic.uuid}")
+                    }
+                }
+//                gatt = discoveredGatt
+//                insertLog("onServicesDiscovered: Have gatt2")
+//                val service = discoveredGatt.getService(SERVICE_UUID)
+//                insertLog("onServicesDiscovered: Have gatt3 ${service}")
+//                messageCharacteristic = service.getCharacteristic(MESSAGE_UUID)
+//                insertLog("onServicesDiscovered: Have gatt4 $messageCharacteristic")
             }
+        }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            Log.d("devLog", "onCharacteristicWrite client 1: $status ${characteristic?.uuid}")
+        }
+
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            newValue: ByteArray,
+        ) {
+            super.onCharacteristicChanged(gatt, characteristic, newValue)
+            Log.d("devLog", "onCharacteristicChanged client 1: ${characteristic.uuid}")
+        }
+
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?
+        ) {
+            super.onCharacteristicChanged(gatt, characteristic)
+            Log.d("devLog", "onCharacteristicChanged client 2: ${characteristic?.uuid}")
+        }
+
+        override fun onCharacteristicRead(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray,
+            status: Int
+        ) {
+            super.onCharacteristicRead(gatt, characteristic, value, status)
+            Log.d("devLog", "onCharacteristicRead client 3: $status ${characteristic.uuid}")
+        }
+
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt,
+            descriptor: BluetoothGattDescriptor,
+            status: Int
+        ) {
+            super.onDescriptorWrite(gatt, descriptor, status)
+            Log.d("devLog", "onDescriptorWrite client 4: $status ${descriptor.uuid}")
         }
     }
 

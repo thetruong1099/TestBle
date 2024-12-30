@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import com.colors.testble.presentation.utils.Screen
 
 fun NavGraphBuilder.mainScreen(
+    onNavigateToScanScreen: () -> Unit,
     onNavigateToLogScreen: () -> Unit,
 ) {
     composable<Screen.MainScreen> {
@@ -14,6 +15,7 @@ fun NavGraphBuilder.mainScreen(
         MainScreen(
             onEvent = viewModel::onTriggerEvent,
             onNavigateToLogScreen = onNavigateToLogScreen,
+            onNavigateToScanScreen = onNavigateToScanScreen,
         )
     }
 }
