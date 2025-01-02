@@ -65,9 +65,9 @@ fun ScanScreen(
                 }
             }
 
-            LazyRow (
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     Button(
@@ -76,6 +76,86 @@ fun ScanScreen(
                         },
                     ) {
                         Text(text = "Get Data Info BLE")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.GetBatteryPower)
+                        },
+                    ) {
+                        Text(text = "Get Battery Power")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.SetCurrentTime)
+                        },
+                    ) {
+                        Text(text = "Set current time Stage")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.StartWateringMode)
+                        },
+                    ) {
+                        Text(text = "Start Watering Mode")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.ExitWateringMode)
+                        },
+                    ) {
+                        Text(text = "Exit Watering Mode")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.StartCalibrationMode)
+                        },
+                    ) {
+                        Text(text = "Start Calibration Mode")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.ExitCalibrationMode)
+                        },
+                    ) {
+                        Text(text = "Exit Calibration Mode")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.ResetCommand)
+                        },
+                    ) {
+                        Text(text = "Reset Command")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onEvent.invoke(ScanViewEvent.SendRequestOfflineData)
+                        },
+                    ) {
+                        Text(text = "Send request offline data Command")
                     }
                 }
             }
